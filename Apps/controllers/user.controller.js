@@ -11,7 +11,7 @@ exports.get = async (req,res) => {
     res.json(user)
 }
 
-//CREATE USER
+//CREATE USER AND GENERATE OTP
 exports.create = async (req,res) => {
     const {error} = schema.validate(req.body)
     if (error) return res.status(404).send(error.details[0].message)
@@ -19,13 +19,42 @@ exports.create = async (req,res) => {
     let user = await User.findOne({ userId: req.body.userId })
     if (user) return res.status(400).send("User already registered")
 
-    user = await new User(req.body)
+  let { name, email, userId, password , role , gender} = req.body;
+
 
     const salt = await bcrypt.genSalt(10)
-    user.password = await bcrypt.hash(user.password,salt)
+    password = await bcrypt.hash(password,salt)
 
-    await user.save()
-    res.json(user)
+   
+    try {
+
+      const digits = '0123456789';
+      let otpCode = '';
+      for (let i = 0; i < 6; i++) {
+        otpCode += digits[Math.floor(Math.random() * 10)];
+      }
+  
+      const subject = 'OTP code for registration';
+      const text = `Your OTP code is ${otpCode}`;
+  
+      await sendEmail(email, subject, text);
+
+      req.session.otpCode = otpCode;
+      req.session.userDetails = {
+        name,
+        email,
+        userId,
+        password,
+        role,
+        gender
+      };
+  
+      res.send('Email sent for OTP verification');
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Failed to send email');
+    }
+
 }
 
 //LOGIN
@@ -36,6 +65,7 @@ exports.login = async (req,res) => {
    let isPassword = await bcrypt.compare(req.body.password, user.password)
    if (!isPassword) {
        return res.status(400).send("INVALID PASSWORD")
+
    }
 
    const token = await jwt.sign({userId : user._id, userRole : user.role}, process.env.PRIVATE_KEY)
@@ -72,13 +102,13 @@ exports.resetPassword = async (req, res) => {
       const {token} = req.query; 
       const user = await User.findOneAndUpdate({
         resetPasswordToken: token,
-        resetPasswordExpires:  "2023-03-21T12:45:10.200+00:00",
-        // resetPasswordExpires: { $gte: Date.now() },
+        resetPasswordExpires: { $gte: Date.now() },
+        // resetPasswordExpires: "2023-03-22T07:37:37.776+00:00",
       },
       {password : req.body.password});
-      console.log("USERRR => ", user);
-      const salt = await bcrypt.genSalt(10)
-    user.password = await bcrypt.hash(user.password,salt)
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.password, salt);
+
     await user.save()
   
       if (!user) {
@@ -87,7 +117,6 @@ exports.resetPassword = async (req, res) => {
           .json({ message: "Password reset token is invalid or has expired" });
       }
     
-      
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
   
@@ -101,6 +130,30 @@ exports.resetPassword = async (req, res) => {
     } catch (error) {
       console.log(error);
       res.json(error.message);
+    }
+  };
+
+ //VERIFY OTP AND STORE USER IN DB 
+  exports.verifyOtp = async (req, res) => {
+    const userOtp = req.body.otp;
+  
+    const storedOtp = req.session.otpCode;
+    const userDetails = req.session.userDetails;
+  
+    if (userOtp === storedOtp) {
+      try {
+        const user = await User.create(userDetails);
+  
+        req.session.otpCode = null;
+        req.session.userDetails = null;
+  
+        res.json(user);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send('Failed to create user');
+      }
+    } else {
+      res.status(400).send('Invalid OTP');
     }
   };
   

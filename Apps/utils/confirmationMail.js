@@ -9,13 +9,13 @@ const {User } = require('../model/user')
         pass: process.env.EMAIL_PASS
     }
   });
-  async function confirmEmail(to, from , subject, text, req, res) {
+  async function confirmEmail() {
     const user = await User.find()
   const mailOptions = {
-    to : "shahzaman.aftab@gmail.com",
+    to : user[0].email,
     subject: 'Your password has been changed',
-    text: `Hi ${user.name},\n\n`
-      + `This is a confirmation that the password for your account ${user.email} has just been changed.\n`
+    text: `Hi ${user[0].name},\n\n`
+      + `This is a confirmation that the password for your account ${user[0].email} has just been changed.\n`
   };
 
   await transporter.sendMail(mailOptions);

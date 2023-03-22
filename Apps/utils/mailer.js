@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer')
-const {User } = require('../model/user')
 
+ // Send a reset password email to the user
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -9,8 +9,7 @@ const transporter = nodemailer.createTransport({
     }
   });
 
-  async function sendEmail(to, from , subject, text, req, res) {
-    // const user = await User.find()
+  async function sendEmail(to, subject, text,  res) {
     try {
         const mailOptions = {
             to,
@@ -18,7 +17,6 @@ const transporter = nodemailer.createTransport({
             text,
           };
   const info = await transporter.sendMail(mailOptions);
-//   console.log(`Email sent: ${info.response}`);
 
     } 
     catch 

@@ -9,6 +9,7 @@ router.post('/login' , controller.login)
 router.get('/getAllUsers', [authMiddleware] , controller.get)
 router.post('/forgetPassword' , controller.forgetPassword)
 router.post('/resetPassword' , controller.resetPassword)
+router.post('/verifyOtp' , controller.verifyOtp)
 
 
 module.exports = router;

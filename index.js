@@ -3,6 +3,13 @@ const app = express()
 app.use(express.json())
 require('dotenv').config()
 const port = process.env.PORT || 3000
+const session = require('express-session');
+
+app.use(session({
+  secret: process.env.PRIVATE_KEY,
+  resave: false,
+  saveUninitialized: true
+}));
 
 
 //DB
