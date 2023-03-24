@@ -10,6 +10,8 @@ router.get('/getAllUsers', [authMiddleware] , controller.get)
 router.post('/forgetPassword' , controller.forgetPassword)
 router.post('/resetPassword' , controller.resetPassword)
 router.post('/verifyOtp' , controller.verifyOtp)
+router.put('/edit' , [authMiddleware] , controller.edit)
+router.delete('/delete' , [authMiddleware] , controller.delete)
 
 
 module.exports = router;
