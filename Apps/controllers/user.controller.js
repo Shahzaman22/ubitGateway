@@ -2,6 +2,7 @@ const { User, schema } = require('../model/user')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
+const _ = require('lodash')
 const { sendEmail } = require('../utils/mailer')
 const { confirmEmail } = require('../utils/confirmationMail')
 const { generateOTP } = require('../utils/otp')
@@ -17,10 +18,10 @@ exports.create = async (req, res) => {
   const { error } = schema.validate(req.body)
   if (error) return res.status(404).send(error.details[0].message)
 
-  let user = await User.findOne({ userId: req.body.userId })
-  if (user) return res.status(400).send("User already registered")
+  let user = await User.findOne({ email: req.body.email})
+  if (user) return res.status(400).send("User already registered with that email")
 
-  let { name, email, userId, password, role, gender } = req.body;
+  let { name, email, password, role, gender } = req.body;
 
 
   const salt = await bcrypt.genSalt(10)
@@ -34,7 +35,6 @@ exports.create = async (req, res) => {
     req.session.userDetails = {
       name,
       email,
-      userId,
       password,
       role,
       gender
@@ -50,8 +50,8 @@ exports.create = async (req, res) => {
 
 //LOGIN
 exports.login = async (req, res) => {
-  const user = await User.findOne({ name: req.body.name })
-  if (!user) return res.status(403).send("Username not found")
+  const user = await User.findOne({ email: req.body.email })
+  if (!user) return res.status(403).send("Email not found")
 
   let isPassword = await bcrypt.compare(req.body.password, user.password)
   if (!isPassword) {
@@ -60,7 +60,7 @@ exports.login = async (req, res) => {
   }
 
   const token = await jwt.sign({ userId: user._id, userRole: user.role }, process.env.PRIVATE_KEY)
-  res.json({ token, msg: 'Login successfully' })
+  res.status(200).json({token, user: _.pick(user, ['_id', 'name', 'email', 'role', 'gender']), msg : "Login Successfully"})
 
 }
 

@@ -13,11 +13,11 @@ const userSchema = new mongoose.Schema({
         maxlength : 255,
         required : true
     },
-    userId : {
-        type : Number,
-        unique : true,
-        required : true
-    },
+    // userId : {
+    //     type : Number,
+    //     unique : true,
+    //     required : true
+    // },
     password : {
         type : String,
         required : true,
@@ -45,7 +45,6 @@ const User = mongoose.model('Users',userSchema,'Users');
 const schema = Joi.object({
     name : Joi.string().min(5).max(255).required(),
     email : Joi.string().min(8).max(255).required().email(),
-    userId : Joi.number().required(),
     password : Joi.string().min(5).max(255).required(),
     role : Joi.string().min(4).max(255),
     gender : Joi.string().min(3).max(255),
