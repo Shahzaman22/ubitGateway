@@ -147,26 +147,36 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-
 //EDIT USER PASSWORD
-exports.edit = async (req,res) => {
+// exports.edit = async (req,res) => {
+//   const id = req.user.userId
+//  const user = await User.findByIdAndUpdate(id,req.body)
+//  if(!user) return res.status(403).send('User not found')
+
+//  let isPassword = await bcrypt.compare(req.body.password, user.password)
+//  if (isPassword) {
+//    return res.status(400).send("INVALID PASSWORD")
+//  }
+
+//  // check if password is updated
+//  if (req.body.password) {
+//    const salt = await bcrypt.genSalt(10)
+//    user.password = await bcrypt.hash(req.body.password, salt)
+//    await user.save()
+//  }
+
+//  res.json(user)
+// }
+
+//UPDATE USER
+exports.update = async (req,res) => {
   const id = req.user.userId
- const user = await User.findByIdAndUpdate(id,req.body)
- if(!user) return res.status(403).send('User not found')
-
- let isPassword = await bcrypt.compare(req.body.password, user.password)
- if (isPassword) {
-   return res.status(400).send("INVALID PASSWORD")
- }
-
- // check if password is updated
- if (req.body.password) {
-   const salt = await bcrypt.genSalt(10)
-   user.password = await bcrypt.hash(req.body.password, salt)
-   await user.save()
- }
-
- res.json(user)
+  const user = await User.findByIdAndUpdate(id,{
+    name : req.body.name,
+    email : req.body.email,
+    gender : req.body.gender
+  })
+  res.json(user)
 }
 
 //DELETE USER
@@ -175,4 +185,6 @@ exports.delete = async(req,res) => {
   const user = await User.findByIdAndDelete(id)
   res.json({user, msg : "Delete Successfully"})
 }
+
+
 

@@ -10,7 +10,8 @@ router.get('/getAllUsers', [authMiddleware] , controller.get)
 router.post('/forgetPassword' , controller.forgetPassword)
 router.post('/resetPassword' , controller.resetPassword)
 router.post('/verifyOtp' , controller.verifyOtp)
-router.put('/edit' , [authMiddleware] , controller.edit)
+// router.put('/edit' , [authMiddleware] , controller.edit)
+router.put('/update' , [authMiddleware] , controller.update)
 router.delete('/delete' , [authMiddleware] , controller.delete)
 
 
