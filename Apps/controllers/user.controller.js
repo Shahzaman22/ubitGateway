@@ -190,7 +190,7 @@ exports.verifyOtp = async (req, res) => {
 
 
 //UPDATE USER
-exports.update = async (req,res) => {
+exports.edit = async (req,res) => {
   const id = req.user.userId
   const user = await User.findByIdAndUpdate(id,{
     name : req.body.name,
