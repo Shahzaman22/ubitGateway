@@ -4,19 +4,15 @@ const userSchema = new mongoose.Schema({
     name :{
         type : String,
         minlength : 5,
-        maxlength : 255,
-        required : true
+        maxlength : 255
     },
     email : {
         type : String,
         minlength : 8,
         maxlength : 255,
-        required : true
     },
     password : {
-        type : String,
-        required : true,
-    },
+        type : String    },
     role : {
         type : String,
         enum : ["user","admin","teacher","employer"],
