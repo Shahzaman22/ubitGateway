@@ -1,16 +1,20 @@
 const { User, schema } = require('../model/user')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const crypto = require('crypto')
 const _ = require('lodash')
-const { sendEmail } = require('../utils/mailer')
-const { confirmEmail } = require('../utils/confirmationMail')
 const { generateOTP } = require('../utils/otp')
 
 //GET USER
 exports.get = async (req, res) => {
   const user = await User.find()
   res.json(user)
+}
+
+//GET A SINGLE USER
+exports.getSingleUser = async(req,res) => {
+  const id = req.user.userId
+  const user = await User.findById(id)
+  res.json(user);
 }
 
 //CREATE USER AND GENERATE OTP
@@ -110,38 +114,7 @@ exports.resetPassword = async (req, res) => {
 };
 
 
-// try {
-  //   const { token } = req.query;
-  //   const user = await User.findOneAndUpdate({
-  //     resetPasswordToken: token,
-  //     resetPasswordExpires: { $gte: Date.now() },
-  //   },
-  //     { password: req.body.password });
-  //   const salt = await bcrypt.genSalt(10);
-  //   user.password = await bcrypt.hash(req.body.password, salt);
 
-  //   await user.save()
-
-  //   if (!user) {
-  //     return res
-  //       .status(400)
-  //       .json({ message: "Password reset token is invalid or has expired" });
-  //   }
-
-  //   user.resetPasswordToken = undefined;
-  //   user.resetPasswordExpires = undefined;
-
-  //   const subject = "Your password has been changed";
-  //   const text =
-  //     `Hi ${user.name},\n\n` +
-  //     `This is a confirmation that the password for your account ${user.email} has just been changed.\n`;
-
-  //   await confirmEmail(subject, text);
-  //   res.json({ message: "Password reset successfully" });
-  // } catch (error) {
-  //   console.log(error);
-  //   res.json(error.message);
-  // }
 
 //VERIFY OTP AND STORE USER IN DB 
 exports.verifyOtp = async (req, res) => {
@@ -167,26 +140,6 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-//EDIT USER PASSWORD
-// exports.edit = async (req,res) => {
-//   const id = req.user.userId
-//  const user = await User.findByIdAndUpdate(id,req.body)
-//  if(!user) return res.status(403).send('User not found')
-
-//  let isPassword = await bcrypt.compare(req.body.password, user.password)
-//  if (isPassword) {
-//    return res.status(400).send("INVALID PASSWORD")
-//  }
-
-//  // check if password is updated
-//  if (req.body.password) {
-//    const salt = await bcrypt.genSalt(10)
-//    user.password = await bcrypt.hash(req.body.password, salt)
-//    await user.save()
-//  }
-
-//  res.json(user)
-// }
 
 
 //UPDATE USER
