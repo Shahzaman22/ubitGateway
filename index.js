@@ -15,11 +15,10 @@ app.use(session({
 //CORS
 app.use(
   cors({
-    credentials : true,
-    origin : true,
-    methods : ["POST", "PUT", "GET" ,"DELETE"]
+    origin: true,
+    methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD", "PATCH"],
   })
-)
+);
 
 //DB
 require('./Apps/config/db')
