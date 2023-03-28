@@ -13,6 +13,7 @@ async function generateOTP(email) {
   const text = `Your OTP code is ${otpCode}`;
 
   await sendEmail(email, subject, text);
+  return otpCode;
 }
 
 module.exports = { generateOTP };

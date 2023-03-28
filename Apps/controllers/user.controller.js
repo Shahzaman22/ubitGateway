@@ -54,13 +54,16 @@ exports.login = async (req, res) => {
   if (!user) return res.status(403).send("Email not found")
 
   let isPassword = await bcrypt.compare(req.body.password, user.password)
-  if (!isPassword) {
-    return res.status(400).send("INVALID PASSWORD")
-
-  }
-
-  const token = await jwt.sign({ userId: user._id, userRole: user.role }, process.env.PRIVATE_KEY)
+  console.log("req pass =>",req.body.password);
+  console.log("user pass =>", user.password);
+  if (isPassword) {
+    const token = await jwt.sign({ userId: user._id, userRole: user.role }, process.env.PRIVATE_KEY)
   res.status(200).json({token, user: _.pick(user, ['_id', 'name', 'email', 'role', 'gender']), msg : "Login Successfully"})
+  }
+else {
+  return res.status(400).send("INVALID PASSWORD") 
+
+}
 
 }
 
@@ -69,59 +72,76 @@ exports.forgetPassword = async (req, res) => {
   const user = await User.findOne({ email: req.body.email })
   if (!user) return res.status(403).send('Email not found')
 
-  user.resetPasswordToken = crypto.randomBytes(20).toString('hex');
-  user.resetPasswordExpires = Date.now() + 3600000;
-  await user.save()
-  console.log("FORGET TOKEN =>", user.resetPasswordToken);
-  console.log("Date =>", user.resetPasswordExpires);
-  const { email } = req.body;
+  const {email} = req.body;
+  const otpCode = await generateOTP(email);
 
-  const subject = 'Password reset request'
-  const text = `Hi ${user.name},\n\n`
-    + `You are receiving this email because you (or someone else) has requested a password reset for your account.\n\n`
-    + `Please click on the following link, or paste it into your browser to complete the process:\n\n`
-    + `${req.headers.host}/reset-password/${user.resetPasswordToken}\n\n`
-    + `If you did not request this, please ignore this email and your password will remain unchanged.\n`
-
-  await sendEmail(email, subject, text);
-  res.json({ message: 'Password reset email sent' });
+  req.session.otpCode = otpCode;
+  req.session.userDetails = {  email  };
+  res.send('Email sent for OTP verification');
 }
+
 
 //RESET PASSWORD
 exports.resetPassword = async (req, res) => {
-  try {
-    const { token } = req.query;
-    const user = await User.findOneAndUpdate({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gte: Date.now() },
-    },
-      { password: req.body.password });
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(req.body.password, salt);
+  const userOtp = req.body.otp;
+  const password = req.body.password;
+  const storedOtp = req.session.otpCode;
+  const userDetails = req.session.userDetails;
 
-    await user.save()
+  if (userOtp === storedOtp) {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      
+      await User.updateOne({ email: userDetails.email }, { password: hashedPassword });
+      
+      console.log("Details =>", userDetails);
+        
+      req.session.otpCode = null;
+      req.session.userDetails = null;
 
-    if (!user) {
-      return res
-        .status(400)
-        .json({ message: "Password reset token is invalid or has expired" });
+      res.status(200).send({ message: 'Password updated successfully' });
+    } catch (error) {
+      res.status(500).send({ error: 'An error occurred while updating password' });
     }
-
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-
-    const subject = "Your password has been changed";
-    const text =
-      `Hi ${user.name},\n\n` +
-      `This is a confirmation that the password for your account ${user.email} has just been changed.\n`;
-
-    await confirmEmail(subject, text);
-    res.json({ message: "Password reset successfully" });
-  } catch (error) {
-    console.log(error);
-    res.json(error.message);
+  } else {
+    res.status(400).send({ error: 'Invalid OTP' });
   }
 };
+
+
+// try {
+  //   const { token } = req.query;
+  //   const user = await User.findOneAndUpdate({
+  //     resetPasswordToken: token,
+  //     resetPasswordExpires: { $gte: Date.now() },
+  //   },
+  //     { password: req.body.password });
+  //   const salt = await bcrypt.genSalt(10);
+  //   user.password = await bcrypt.hash(req.body.password, salt);
+
+  //   await user.save()
+
+  //   if (!user) {
+  //     return res
+  //       .status(400)
+  //       .json({ message: "Password reset token is invalid or has expired" });
+  //   }
+
+  //   user.resetPasswordToken = undefined;
+  //   user.resetPasswordExpires = undefined;
+
+  //   const subject = "Your password has been changed";
+  //   const text =
+  //     `Hi ${user.name},\n\n` +
+  //     `This is a confirmation that the password for your account ${user.email} has just been changed.\n`;
+
+  //   await confirmEmail(subject, text);
+  //   res.json({ message: "Password reset successfully" });
+  // } catch (error) {
+  //   console.log(error);
+  //   res.json(error.message);
+  // }
 
 //VERIFY OTP AND STORE USER IN DB 
 exports.verifyOtp = async (req, res) => {
@@ -167,6 +187,7 @@ exports.verifyOtp = async (req, res) => {
 
 //  res.json(user)
 // }
+
 
 //UPDATE USER
 exports.update = async (req,res) => {
