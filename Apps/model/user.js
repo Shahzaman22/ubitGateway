@@ -23,12 +23,11 @@ const userSchema = new mongoose.Schema({
         type : String,
         enum : ['male','female','other'],
     },
-    // resetPasswordToken  : {
-    //     type : String
-    // },
-    // resetPasswordExpires : {
-    //     type : Date
-    // }
+    img : {
+        type : String,
+        // required : true
+    }
+
 
 })
 

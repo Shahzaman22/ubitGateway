@@ -26,8 +26,9 @@ exports.create = async (req, res) => {
   if (user) return res.status(400).send("User already registered with that email")
 
   let { name, email, password, role, gender } = req.body;
+    let  { img } = req.file ? req.file.filename : null
 
-
+  console.log("Img => ",img);
   const salt = await bcrypt.genSalt(10)
   password = await bcrypt.hash(password, salt)
 
@@ -41,7 +42,8 @@ exports.create = async (req, res) => {
       email,
       password,
       role,
-      gender
+      img,
+      gender,
     };
 
     res.send('Email sent for OTP verification');
