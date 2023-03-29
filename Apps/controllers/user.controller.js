@@ -6,14 +6,14 @@ const { generateOTP } = require('../utils/otp')
 
 //GET USER
 exports.get = async (req, res) => {
-  const user = await User.find()
+  const user = await User.find().select('-password')
   res.json(user)
 }
 
 //GET A SINGLE USER
 exports.getSingleUser = async(req,res) => {
   const id = req.user.userId
-  const user = await User.findById(id)
+  const user = await User.findById(id).select('-password')
   res.json(user);
 }
 
@@ -58,8 +58,8 @@ exports.login = async (req, res) => {
   if (!user) return res.status(403).send("Email not found")
 
   let isPassword = await bcrypt.compare(req.body.password, user.password)
-  console.log("req pass =>",req.body.password);
-  console.log("user pass =>", user.password);
+  // console.log("req pass =>",req.body.password);
+  // console.log("user pass =>", user.password);
   if (isPassword) {
     const token = await jwt.sign({ userId: user._id, userRole: user.role }, process.env.PRIVATE_KEY)
   res.status(200).json({token, user: _.pick(user, ['_id', 'name', 'email', 'role', 'gender']), msg : "Login Successfully"})
@@ -156,7 +156,7 @@ exports.edit = async (req,res) => {
 //DELETE USER
 exports.delete = async(req,res) => {
   const id = req.user.userId
-  const user = await User.findByIdAndDelete(id)
+  const user = await User.findByIdAndDelete(id).select('-password')
   res.json({user, msg : "Delete Successfully"})
 }
 
