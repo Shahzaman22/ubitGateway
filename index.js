@@ -3,8 +3,9 @@ const app = express()
 const cors = require('cors')
 app.use(express.json())
 require('dotenv').config()
-const port = process.env.PORT || 4000
 const session = require('express-session');
+const path = require('path')
+const port = process.env.PORT || 4000
 
 app.use(session({
   secret: process.env.PRIVATE_KEY,
@@ -19,6 +20,9 @@ app.use(
     methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD", "PATCH"],
   })
 );
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 //DB
 require('./Apps/config/db')
