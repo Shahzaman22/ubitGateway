@@ -25,8 +25,8 @@ exports.create = async (req, res) => {
   let user = await User.findOne({ email: req.body.email})
   if (user) return res.status(400).send("User already registered with that email")
 
-  let { name, email, password, role, gender } = req.body;
-    let  { img } = req.file ? req.file.filename : null
+  let { name, email, password, role, gender, img } = req.body;
+    // let  { img } = req.file ? req.file.filename : null
 
   console.log("Img => ",img);
   const salt = await bcrypt.genSalt(10)
@@ -42,8 +42,8 @@ exports.create = async (req, res) => {
       email,
       password,
       role,
-      img,
       gender,
+      img
     };
 
     res.send('Email sent for OTP verification');
