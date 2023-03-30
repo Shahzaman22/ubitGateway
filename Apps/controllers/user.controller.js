@@ -162,5 +162,18 @@ exports.delete = async(req,res) => {
   res.json({user, msg : "Delete Successfully"})
 }
 
+exports.changeStatus = async (req,res) => {
+  let user = await User.findOne({ email: req.body.email })
+  if (!user) { return res.status(400).send("Invalid email") };
+
+  if (req.body.is_Active) {
+      user.is_Active = true
+      await user.save()
+  }
+
+  if (!user.is_Active) {
+    return res.status(400).json({ message: 'User is not active' }); 
+  }
+}
 
 

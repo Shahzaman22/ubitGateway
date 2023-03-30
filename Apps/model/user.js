@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     },
     role : {
         type : String,
-        enum : ["user","admin","teacher","employer"],
+        enum : ["user","teacher","employer"],
         default : "user"
     },
     gender : {
@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema({
     img : {
         type : String,
         // required : true
+    },
+    is_Active :{
+        type : Boolean
     }
 
 

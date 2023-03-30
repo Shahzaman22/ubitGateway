@@ -21,6 +21,7 @@ app.use(
   })
 );
 
+//Img Uploader
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
