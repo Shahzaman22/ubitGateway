@@ -3,6 +3,9 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const _ = require('lodash')
 const { generateOTP } = require('../utils/otp')
+const passport =  require('passport')
+const googleStrategy = require('passport-google-oauth20').Strategy
+
 
 //GET USER
 exports.get = async (req, res) => {
@@ -60,8 +63,7 @@ exports.login = async (req, res) => {
   if (!user) return res.status(403).send("Email not found")
 
   let isPassword = await bcrypt.compare(req.body.password, user.password)
-  // console.log("req pass =>",req.body.password);
-  // console.log("user pass =>", user.password);
+
   if (isPassword) {
     const token = await jwt.sign({ userId: user._id, userRole: user.role }, process.env.PRIVATE_KEY)
   res.status(200).json({token, user: _.pick(user, ['_id', 'name', 'email', 'role', 'gender']), msg : "Login Successfully"})
@@ -115,9 +117,6 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-
-
-
 //VERIFY OTP AND STORE USER IN DB 
 exports.verifyOtp = async (req, res) => {
   const userOtp = req.body.otp;
@@ -143,7 +142,6 @@ exports.verifyOtp = async (req, res) => {
 };
 
 
-
 //UPDATE USER
 exports.edit = async (req,res) => {
   const id = req.user.userId
@@ -162,6 +160,7 @@ exports.delete = async(req,res) => {
   res.json({user, msg : "Delete Successfully"})
 }
 
+//change Status
 exports.changeStatus = async (req,res) => {
   let user = await User.findOne({ email: req.body.email })
   if (!user) { return res.status(400).send("Invalid email") };
@@ -175,5 +174,24 @@ exports.changeStatus = async (req,res) => {
     return res.status(400).json({ message: 'User is not active' }); 
   }
 }
+
+//OAUTH
+passport.use(new googleStrategy({
+    clientID : "384461296523-oojqs6gkg0ig0s2p44t99mgbeqjjdtvg.apps.googleusercontent.com",
+    clientSecret : "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",
+    callbackURL : "/auth/google/callback"
+},(accessToken, refreshToken, profile, done) => {
+    console.log("Access Token", accessToken);
+    console.log("Refresh Token", refreshToken);
+    console.log("PROFILE", profile);
+    if (!refreshToken) {
+      console.log('No refresh token granted');
+    }
+}))
+
+exports.oAuth = passport.authenticate('google', {
+  scope: ['profile', 'email'],
+});
+
 
 

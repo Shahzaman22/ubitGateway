@@ -5,6 +5,8 @@ const authMiddleware = require('../middleware/authMiddleware')
 const admin =  require('../middleware/admin')
 const multer = require('multer');
 const path = require('path');
+const passport =  require('passport')
+
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -28,6 +30,9 @@ router.post('/resetPassword' , controller.resetPassword)
 router.post('/verifyOtp' , controller.verifyOtp)
 router.put('/edit' , [authMiddleware] , controller.edit)
 router.delete('/delete' , [authMiddleware] , [admin], controller.delete)
+router.get('/auth/google', controller.oAuth);
+
+router.get('/auth/google/callback', passport.authenticate('google'));
 
 
 module.exports = router;
