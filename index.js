@@ -7,8 +7,8 @@ const session = require('express-session');
 const path = require('path')
 const port = process.env.PORT || 4000
 const passport = require('passport')
-require('./Apps/middleware/auth')
 
+//Session
 app.use(session({
   secret: process.env.PRIVATE_KEY,
   resave: false,

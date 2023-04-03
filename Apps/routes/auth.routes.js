@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-require('../middleware/auth')
+require('../middleware/googleOauth')
 const passport =  require('passport')
 
 function isLoggedIn (req,res,next) {
