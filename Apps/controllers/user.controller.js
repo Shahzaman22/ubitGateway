@@ -3,8 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const _ = require('lodash')
 const { generateOTP } = require('../utils/otp')
-const passport =  require('passport')
-const googleStrategy = require('passport-google-oauth20').Strategy
+
 
 
 //GET USER
@@ -176,22 +175,7 @@ exports.changeStatus = async (req,res) => {
 }
 
 //OAUTH
-passport.use(new googleStrategy({
-    clientID : "384461296523-oojqs6gkg0ig0s2p44t99mgbeqjjdtvg.apps.googleusercontent.com",
-    clientSecret : "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",
-    callbackURL : "/auth/google/callback"
-},(accessToken, refreshToken, profile, done) => {
-    console.log("Access Token", accessToken);
-    console.log("Refresh Token", refreshToken);
-    console.log("PROFILE", profile);
-    if (!refreshToken) {
-      console.log('No refresh token granted');
-    }
-}))
 
-exports.oAuth = passport.authenticate('google', {
-  scope: ['profile', 'email'],
-});
 
 
 
