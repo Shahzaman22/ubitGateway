@@ -21,7 +21,7 @@ router.get('/failure', (req,res) => {
 
 
 router.get('/protected' , [isLoggedIn] , (req,res) => {
-    res.send(`Hello ${req.user.displayName}. You are Logged In`)
+    res.json(`Hello ${req.user.displayName}. You are Logged In`)
 })
 
 router.get('/logout', (req,res) => {

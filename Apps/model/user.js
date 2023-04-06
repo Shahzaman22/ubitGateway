@@ -25,7 +25,6 @@ const userSchema = new mongoose.Schema({
     },
     img : {
         type : String,
-        // required : true
     },
     is_Active :{
         type : Boolean

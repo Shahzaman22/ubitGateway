@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const _ = require('lodash')
 const { generateOTP } = require('../utils/otp')
+const path = require('path')
 
 
 
@@ -28,7 +29,12 @@ exports.create = async (req, res) => {
   if (user) return res.status(400).send("User already registered with that email")
 
   let { name, email, password, role, gender } = req.body;
-    let   img  = req.file.path
+  // let   img  = req.file.path
+  let img;
+if (req.file) {
+  img = req.file.path;
+}
+
 
   console.log("Img => ",img);
   const salt = await bcrypt.genSalt(10)
@@ -130,7 +136,8 @@ exports.verifyOtp = async (req, res) => {
       req.session.otpCode = null;
       req.session.userDetails = null;
 
-      res.json(user);
+      // res.json(user);
+      res.status(200).json({user: _.pick(user, ['_id', 'name', 'email', 'role', 'gender', 'img']), msg : "Verified Successfully"})
     } catch (error) {
       console.error(error);
       res.status(500).send('Failed to create user');
