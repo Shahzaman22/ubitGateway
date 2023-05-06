@@ -181,8 +181,6 @@ exports.changeStatus = async (req,res) => {
   }
 }
 
-//OAUTH
-
 
 
 
