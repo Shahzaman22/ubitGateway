@@ -1,15 +1,13 @@
-const express = require('express')
-const router = express.Router()
-const controller = require('../controllers/chat.controller')
-const authMiddleware = require('../middleware/authMiddleware')
-const admin =  require('../middleware/admin')
-
+const express = require("express");
+const router = express.Router();
+const controller = require("../controllers/chat.controller");
+const authMiddleware = require("../middleware/authMiddleware");
+const admin = require("../middleware/admin");
 
 //ROUTES
-router.get('/'  , controller.get)
-router.get('/executive'  , controller.getExecutive)
-router.get('/engineer'  ,  controller.getEngineer)
+router.get("/", controller.get);
+router.get("/executive", controller.getExecutive);
+router.get("/engineer", controller.getEngineer);
 // router.post('/'  ,  controller.post)
-
 
 module.exports = router;
