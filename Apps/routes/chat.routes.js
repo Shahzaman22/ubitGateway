@@ -6,7 +6,10 @@ const admin =  require('../middleware/admin')
 
 
 //ROUTES
-router.post('/' ,[authMiddleware] , controller.postChat)
+router.get('/'  , controller.get)
+router.get('/executive'  , controller.getExecutive)
+router.get('/engineer'  ,  controller.getEngineer)
+// router.post('/'  ,  controller.post)
 
 
 module.exports = router;

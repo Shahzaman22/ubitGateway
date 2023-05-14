@@ -1,64 +1,69 @@
-const http = require('http');
 const express = require('express');
-const router = express.Router();
-const Chat = require('../model/chat');
-const server = http.createServer(router);
-const io = require('socket.io')(server);
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+const Chat = require('../model/chat')
 
-// Create a new chat message
-exports.postChat = async (req, res) => {
-  const { receiverId, message } = req.body;
-  const senderId = req.user.userId;
 
-  try {
-    const chat = new Chat({
-      sender: senderId,
-      receiver: receiverId,
-      message
-    });
+// exports.post = async (req,res) => {
+//   const chat = new  Chat({
+//     user: 'test user',
+//     message: 'test message',
+//   });
+//   await chat.save();
+//   res.json(chat)
+// }
 
-    await chat.save();
+exports.get =  async(req, res) => {
+     await res.sendFile(__dirname + '/Frontend/index.html');
+     
+  };
 
-    // Emit the message to the receiver
-    io.to(receiverId).emit('message', chat);
+exports.getExecutive = async (req, res) => {
+   await res.sendFile(__dirname + '/Frontend/executive.html');
+  }; 
+  
+exports.getEngineer =  async (req, res) => {
+   await res.sendFile(__dirname + '/Frontend/engineer.html');
+  };   
+  
 
-    res.status(201).json(chat);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Failed to send message');
-  }
-};
+  
+  
 
-// Add socket.io event handlers
-io.on('connection', (socket) => {
-  console.log('User connected');
-
-  // Handle incoming messages
-  socket.on('message', async ({ receiverId, message }) => {
-    const senderId = socket.rooms[0]; // The sender is the first room that the socket joined
-
-    try {
-      const chat = new Chat({
-        sender: senderId,
-        receiver: receiverId,
-        message
+const adminNameSpace = io.of('/admin');  
+  adminNameSpace.on('connect', (socket) => {
+    console.log('a user connected');
+    socket.on('join', (data) => {
+        socket.join(data.room);
+        adminNameSpace.in(data.room).emit('chat message', `New person joined the ${data.room} room`)
+    })
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
       });
+      socket.on('chat message', async (data) => {
+        console.log('message: ' + data.msg);
+        const chat = new Chat({
+          user: data.user,
+          message: data.msg,
+        });
+        await chat.save();
+        adminNameSpace.in(data.room).emit('chat message', data.msg);
+      });
+      
 
-      await chat.save();
-
-      // Emit the message to the receiver
-      io.to(receiverId).emit('message', chat);
-
-      socket.emit('message', chat);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Failed to send message');
-    }
+      socket.on('send message to all',async (data) => {
+        console.log('message: ' + data.msg);
+        const chat = new Chat({
+            user: data.user,
+            message: data.msg,
+          });
+          await chat.save();
+        adminNameSpace.emit('chat message', data.msg);
+      });
   });
 
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-});
 
+  
