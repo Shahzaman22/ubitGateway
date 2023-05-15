@@ -8,6 +8,5 @@ const admin = require("../middleware/admin");
 router.get("/", controller.get);
 router.get("/executive", controller.getExecutive);
 router.get("/engineer", controller.getEngineer);
-// router.post('/'  ,  controller.post)
 
 module.exports = router;

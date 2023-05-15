@@ -43,12 +43,42 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 require("./Apps/config/db");
 
 //Socket.io
+// io.on("connection", (socket) => {
+//   console.log("a user connected");
+
+// });
+
 io.on("connection", (socket) => {
   console.log("a user connected");
 
-  // Handle the message here
+  // socket.on("join", (data) => {
+  //   socket.join(data.room);
+  //   io.to(data.room).emit("chat message", `New person joined the ${data.room} room`);
+  // });
 
-  // c socket.id
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+
+  // socket.on("chat message", async (data) => {
+  //   console.log("message: " + data.msg);
+  //   const chat = new Chat({
+  //     user: data.user,
+  //     message: data.msg,
+  //   });
+  //   await chat.save();
+  //   io.to(data.room).emit("chat message", data.msg);
+  // });
+
+  // socket.on("send message to all", async (data) => {
+  //   console.log("message: " + data.msg);
+  //   const chat = new Chat({
+  //     user: data.user,
+  //     message: data.msg,
+  //   });
+  //   await chat.save();
+  //   io.emit("chat message", data.msg);
+  // });
 });
 
 //ROUTES
@@ -56,4 +86,4 @@ app.use("/api", require("./Apps/routes/app.routes"));
 
 //PORT
 server.listen(port, console.log(`Connecte to port ${port}`));
-module.exports = io;
+// module.exports = io;
