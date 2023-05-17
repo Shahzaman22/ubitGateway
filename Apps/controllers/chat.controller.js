@@ -35,8 +35,7 @@ exports.testSavingtoDB = async (data) => {
     user: data.userId,
     message: data.message,
   });
-  const aa = await chat.save();
-  console.log("success");
+  await chat.save();
 };
 
 // io.on("connection", (socket) => {

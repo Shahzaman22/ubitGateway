@@ -23,12 +23,24 @@ const port = process.env.PORT || 4000;
 io.of("/chat").on("connection", (socket) => {
   // GETTING SOCKET ID
   console.log("User connected:", socket.id);
+  const messages = [];
   // WE CAN HAVE USERID IN OBJECT FROM FRONTEND
   socket.on("message", (data) => {
     // console.log("Received message:", message);
-    testSavingtoDB(data);
+    messages.push(data);
+    console.log("Received message:", messages);
+
+    // testSavingtoDB(data);
 
     // Handle the message here and send a response if needed
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+
+    messages.forEach(async (message) => {
+      await testSavingtoDB(message);
+    });
   });
   // Handle incoming chat messages
   // socket.on("send_message", (data) => {
