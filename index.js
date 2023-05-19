@@ -19,24 +19,33 @@ const path = require("path");
 const { testSavingtoDB } = require("./Apps/controllers/chat.controller");
 const port = process.env.PORT || 4000;
 // ----------------------------------------
-const users= {};
+const users = {}; // Change from array to object
 
 io.of("/chat").on('connection', socket => {
   socket.on('new-user-joined', name => {
     console.log("New user =>" , name);
     users[socket.id] = name;
     socket.broadcast.emit('user-joined', name);
-    console.log(`${name} join the chat`);
+    console.log(`${name} joined the chat`);
   });
 
   socket.on('send', message => {
     socket.emit('receive', {
-      message : message,
-      name : users [socket.id]
-    })
+      message: message,
+      name: users[socket.id]
+    });
+    Object.values(users).forEach(async (name) => {
+      await testSavingtoDB(name, message); // Pass socket.id and message as arguments
+    });
+  
   });
 
+  // Object.values(users).forEach(async (user) => { // Use Object.values() to loop over the users object
+  //   await testSavingtoDB(user);
+  // });
+
 });
+
 // ----------------------------------------
 
 // Handle incoming socket connections only on the chat route
@@ -60,9 +69,9 @@ io.of("/chat").on('connection', socket => {
 //   socket.on("disconnect", () => {
 //     console.log("User disconnected:", socket.id);
 
-//     messages.forEach(async (message) => {
-//       await testSavingtoDB(message);
-//     });
+    // messages.forEach(async (message) => {
+    //   await testSavingtoDB(message);
+    // });
 
 //   });
 // });
