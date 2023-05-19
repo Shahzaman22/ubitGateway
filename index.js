@@ -36,13 +36,16 @@ io.of("/chat").on('connection', socket => {
     });
     Object.values(users).forEach(async (name) => {
       await testSavingtoDB(name, message); // Pass socket.id and message as arguments
-    });
-  
+    }); 
   });
 
-  // Object.values(users).forEach(async (user) => { // Use Object.values() to loop over the users object
-  //   await testSavingtoDB(user);
-  // });
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+
+   
+
+  });
+
 
 });
 
@@ -66,14 +69,14 @@ io.of("/chat").on('connection', socket => {
    
 //   });
 
-//   socket.on("disconnect", () => {
-//     console.log("User disconnected:", socket.id);
+  // socket.on("disconnect", () => {
+  //   console.log("User disconnected:", socket.id);
 
-    // messages.forEach(async (message) => {
-    //   await testSavingtoDB(message);
-    // });
+  //   messages.forEach(async (message) => {
+  //     await testSavingtoDB(message);
+  //   });
 
-//   });
+  // });
 // });
 
 
