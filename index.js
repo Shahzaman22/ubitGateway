@@ -30,7 +30,7 @@ io.of("/chat").on('connection', socket => {
   });
 
   socket.on('send', message => {
-    socket.broadcast.emit('receive', {
+    socket.emit('receive', {
       message : message,
       name : users [socket.id]
     })
