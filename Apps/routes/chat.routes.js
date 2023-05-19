@@ -6,10 +6,6 @@ const admin =  require('../middleware/admin')
 
 
 //ROUTES
-router.get('/'  , controller.get)
-router.get('/executive'  , controller.getExecutive)
-router.get('/engineer'  ,  controller.getEngineer)
-// router.post('/'  ,  controller.post)
-
+router.get('/'  , controller.testSavingtoDB)
 
 module.exports = router;

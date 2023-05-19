@@ -18,40 +18,57 @@ const session = require("express-session");
 const path = require("path");
 const { testSavingtoDB } = require("./Apps/controllers/chat.controller");
 const port = process.env.PORT || 4000;
+// ----------------------------------------
+const users= {};
+
+io.of("/chat").on('connection', socket => {
+  socket.on('new-user-joined', name => {
+    console.log("New user =>" , name);
+    users[socket.id] = name;
+    socket.broadcast.emit('user-joined', name);
+    console.log(`${name} join the chat`);
+  });
+
+  socket.on('send', message => {
+    socket.broadcast.emit('receive', {
+      message : message,
+      name : users [socket.id]
+    })
+  });
+
+});
+// ----------------------------------------
 
 // Handle incoming socket connections only on the chat route
-io.of("/chat").on("connection", (socket) => {
-  // GETTING SOCKET ID
-  console.log("User connected:", socket.id);
-  const messages = [];
-  // WE CAN HAVE USERID IN OBJECT FROM FRONTEND
-  socket.on("message", (data) => {
-    // console.log("Received message:", message);
-    messages.push(data);
-    console.log("Received message:", messages);
+// io.of("/chat").on("connection", (socket) => {
+//   // GETTING SOCKET ID
+//   console.log("User connected:", socket.id);
+//   const messages = [];
+//   // WE CAN HAVE USERID IN OBJECT FROM FRONTEND
+//   socket.on("message", (data) => {
+//     messages.push(data);
+//     console.log("Received message:", messages);
+//   });
+  
+//   //REPLY
+//   socket.on("reply", (data) => {    
+//     messages.push(data);
+//     console.log("Received reply:", messages);
+   
+//   });
 
-    // testSavingtoDB(data);
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected:", socket.id);
 
-    // Handle the message here and send a response if needed
-  });
+//     messages.forEach(async (message) => {
+//       await testSavingtoDB(message);
+//     });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+//   });
+// });
 
-    messages.forEach(async (message) => {
-      await testSavingtoDB(message);
-    });
-  });
-  // Handle incoming chat messages
-  // socket.on("send_message", (data) => {
-  //   console.log("Received message:", data);
-  //   // Broadcast the message to all connected clients
-  //   // io.of('/chat').emit('receive_message', {
-  //   //   user: data.user,
-  //   //   text: data.text
-  //   // });
-  // });
-});
+
+
 
 app.use(express.json());
 app.use(
@@ -77,18 +94,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 //DB
 require("./Apps/config/db");
 
-//Socket.io
-// io.on("connection", (socket) => {
-//   console.log("a user connecteddddddd");
-//   socket.on('message', (message) => {
-//     console.log(`Received message from client ${socket.id}:`, message)});
-// });
-
 //ROUTES
 app.use("/api", require("./Apps/routes/app.routes"));
 
 //PORT
 const myServer = server.listen(port, console.log(`Connecte to port ${port}`));
 module.exports = io;
-// module.exports = io;
 module.exports = { myServer };
