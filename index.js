@@ -19,34 +19,30 @@ const path = require("path");
 const { testSavingtoDB } = require("./Apps/controllers/chat.controller");
 const port = process.env.PORT || 4000;
 // ----------------------------------------
-const users = {}; // Change from array to object
+const users = {};
 
-io.of("/chat").on('connection', socket => {
-  socket.on('new-user-joined', name => {
-    console.log("New user =>" , name);
+io.of("/chat").on("connection", (socket) => {
+  socket.on("new-user-joined", (name) => {
+    console.log("New user =>", name);
     users[socket.id] = name;
-    socket.broadcast.emit('user-joined', name);
+    socket.broadcast.emit("user-joined", name);
     console.log(`${name} joined the chat`);
   });
 
-  socket.on('send', message => {
-    socket.emit('receive', {
+  socket.on("send", (message) => {
+    socket.emit("receive", {
       message: message,
-      name: users[socket.id]
+      name: users[socket.id],
     });
     Object.values(users).forEach(async (name) => {
       await testSavingtoDB(name, message); // Pass socket.id and message as arguments
-    }); 
+    });
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-
-   
-
+    delete users[socket.id];
   });
-
-
 });
 
 // ----------------------------------------
@@ -61,26 +57,23 @@ io.of("/chat").on('connection', socket => {
 //     messages.push(data);
 //     console.log("Received message:", messages);
 //   });
-  
+
 //   //REPLY
-//   socket.on("reply", (data) => {    
+//   socket.on("reply", (data) => {
 //     messages.push(data);
 //     console.log("Received reply:", messages);
-   
+
 //   });
 
-  // socket.on("disconnect", () => {
-  //   console.log("User disconnected:", socket.id);
+// socket.on("disconnect", () => {
+//   console.log("User disconnected:", socket.id);
 
-  //   messages.forEach(async (message) => {
-  //     await testSavingtoDB(message);
-  //   });
+//   messages.forEach(async (message) => {
+//     await testSavingtoDB(message);
+//   });
 
-  // });
 // });
-
-
-
+// });
 
 app.use(express.json());
 app.use(
