@@ -14,20 +14,13 @@ const userSchema = new mongoose.Schema({
     password : {
         type : String 
     },
+    confirmPassword : {
+        type : String
+    },
     role : {
         type : String,
-        enum : ["user","admin","teacher","employer"],
+        enum : ["user","employer","admin"],
         default : "user"
-    },
-    gender : {
-        type : String,
-        enum : ['male','female','other'],
-    },
-    img : {
-        type : String,
-    },
-    is_Active :{
-        type : Boolean
     }
 
 
@@ -39,9 +32,9 @@ const schema = Joi.object({
     name : Joi.string().min(5).max(255),
     email : Joi.string().min(8).max(255).email(),
     password : Joi.string().min(5).max(255),
+    confirmPassword : Joi.string().min(5).max(255),
     role : Joi.string().min(4).max(255),
-    gender : Joi.string().min(3).max(255),
-    img : Joi.string().min(3).max(255),
+   
 
 }) 
 

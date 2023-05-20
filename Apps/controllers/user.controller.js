@@ -28,15 +28,14 @@ exports.create = async (req, res) => {
   let user = await User.findOne({ email: req.body.email})
   if (user) return res.status(400).send("User already registered with that email")
 
-  let { name, email, password, role, gender } = req.body;
-  // let   img  = req.file.path
-  let img;
-if (req.file) {
-  img = req.file.path;
-}
+  let { name, email, password, role } = req.body;
+  // let img;
+// if (req.file) {
+//   img = req.file.path;
+// }
 
 
-  console.log("Img => ",img);
+  // console.log("Img => ",img);
   const salt = await bcrypt.genSalt(10)
   password = await bcrypt.hash(password, salt)
 
@@ -50,8 +49,6 @@ if (req.file) {
       email,
       password,
       role,
-      gender,
-      img
     };
 
     res.send('Email sent for OTP verification');
@@ -93,36 +90,52 @@ exports.forgetPassword = async (req, res) => {
   res.send('Email sent for OTP verification');
 }
 
-
-//RESET PASSWORD
-exports.resetPassword = async (req, res) => {
+//VERIFICATION OTP FOR RESET PASSWORD
+exports.verification = async (req, res) => {
   const userOtp = req.body.otp;
-  const password = req.body.password;
   const storedOtp = req.session.otpCode;
-  const userDetails = req.session.userDetails;
 
   if (userOtp === storedOtp) {
-    try {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      
-      await User.updateOne({ email: userDetails.email }, { password: hashedPassword });
-      
-      console.log("Details =>", userDetails);
-        
-      req.session.otpCode = null;
-      req.session.userDetails = null;
-
-      res.status(200).send({ message: 'Password updated successfully' });
-    } catch (error) {
-      res.status(500).send({ error: 'An error occurred while updating password' });
-    }
+    req.session.otpCode = null;
+    res.status(200).send({ message: 'OTP verification successful' });
   } else {
     res.status(400).send({ error: 'Invalid OTP' });
   }
 };
 
-//VERIFY OTP AND STORE USER IN DB 
+
+
+//RESET PASSWORD
+exports.resetPassword = async (req, res) => {
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
+  const userDetails = req.session.userDetails;
+
+  if (password !== confirmPassword) {
+    return res.status(400).send({ error: 'Passwords do not match' });
+  }
+
+  try {
+    // Generate a salt and hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Update the user's password in the database
+    await User.updateOne({ email: userDetails.email }, { password: hashedPassword });
+
+    console.log("Details =>", userDetails);
+
+    req.session.userDetails = null;
+
+    res.status(200).send({ message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).send({ error: 'An error occurred while updating password' });
+  }
+};
+
+
+
+//VERIFY OTP AND  CREATE STORE USER IN DB 
 exports.verifyOtp = async (req, res) => {
   const userOtp = req.body.otp;
 
@@ -137,7 +150,7 @@ exports.verifyOtp = async (req, res) => {
       req.session.userDetails = null;
 
       // res.json(user);
-      res.status(200).json({user: _.pick(user, ['_id', 'name', 'email', 'role', 'gender', 'img']), msg : "Verified Successfully"})
+      res.status(200).json({user: _.pick(user, ['_id', 'name', 'email', 'role']), msg : "Verified Successfully"})
     } catch (error) {
       console.error(error);
       res.status(500).send('Failed to create user');

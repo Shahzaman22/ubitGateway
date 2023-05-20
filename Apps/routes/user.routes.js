@@ -14,6 +14,7 @@ router.get('/getSingleUser', [authMiddleware] , [ admin ], controller.getSingleU
 router.post('/forgetPassword' , controller.forgetPassword)
 router.post('/resetPassword' , controller.resetPassword)
 router.post('/verifyOtp' , controller.verifyOtp)
+router.post('/verification' , controller.verification)
 router.put('/edit' , [authMiddleware] , controller.edit)
 router.delete('/delete' , [authMiddleware] , [admin], controller.delete)
 
