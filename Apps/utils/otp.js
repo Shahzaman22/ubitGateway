@@ -1,11 +1,11 @@
-const {sendEmail} =  require('../utils/mailer')
+const { sendEmail } = require('../utils/mailer');
 
-//send an OTP to user
+// Send an OTP to the user
 const digits = '0123456789';
 
 async function generateOTP(email) {
   let otpCode = '';
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 4; i++) {
     otpCode += digits[Math.floor(Math.random() * 10)];
   }
 
