@@ -7,7 +7,6 @@ const jobApplicationSchema = new Schema({
   resume: String,
   portfolioLink: String,
   coverLetter: String,
-//   status: String,
   applicationDate: { type: Date, default: Date.now },
 });
 
