@@ -174,9 +174,22 @@ exports.edit = async (req,res) => {
 
 //DELETE USER
 exports.delete = async(req,res) => {
-  const id = req.user.userId
-  const user = await User.findByIdAndDelete(id).select('-password')
-  res.json({user, msg : "Delete Successfully"})
+  try {
+    const id = req.query.id;
+    if(!id) {
+     return res.status(400).send("User Id is required");
+    }
+   const user = await User.findByIdAndDelete(id);
+   if(!user) {
+    return  res.status(404).send({error : "User not found"})
+   }
+   res.status(200).json({user, msg : "Deleted Successfully"})
+
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while deleting the user" });
+    
+  }
+  
 }
 
 //change Status
