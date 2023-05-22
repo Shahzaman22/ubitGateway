@@ -1,32 +1,48 @@
-const mongoose = require('mongoose')
-const Joi = require('joi')
-const userSchema = new mongoose.Schema({
-    name :{
-        type : String,
-        minlength : 5,
-        maxlength : 255
-    },
-    email : {
-        type : String,
-        minlength : 8,
-        maxlength : 255,
-    },
-    password : {
-        type : String 
-    },
-    confirmPassword : {
-        type : String
-    },
-    role : {
-        type : String,
-        enum : ["user","employer","admin"],
-        default : "user"
-    }
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+const Joi = require("joi");
 
+const userExperienceSchema = new Schema({
+  position: String,
+  company: String,
+  startDate: Date,
+  endDate: Date,
+});
 
-})
+const educationSchema = new Schema({
+  degree: String,
+  startDate: Date,
+  endDate: Date,
+});
 
-const User = mongoose.model('Users',userSchema,'Users');
+const userSchema = new Schema({
+  name: {
+    type: String,
+    minlength: 5,
+    maxlength: 255,
+  },
+  email: {
+    type: String,
+    minlength: 8,
+    maxlength: 255,
+  },
+  password: {
+    type: String,
+  },
+  confirmPassword: {
+    type: String,
+  },
+  role: {
+    type: String,
+    enum: ["user", "employer", "admin"],
+    default: "user",
+  },
+  experience: [userExperienceSchema], 
+  education: [educationSchema], 
+});
+
+const User = mongoose.model("Users", userSchema, "Users");
+
 
 const schema = Joi.object({
     name : Joi.string().min(5).max(255),
@@ -34,10 +50,11 @@ const schema = Joi.object({
     password : Joi.string().min(5).max(255),
     confirmPassword : Joi.string().min(5).max(255),
     role : Joi.string().min(4).max(255),
-
+    experience : Joi.string().min(0).max(255),
+    education : Joi.string().min(0).max(255),
     
 
-}) 
+})
 
 exports.User = User;
 exports.schema = schema;

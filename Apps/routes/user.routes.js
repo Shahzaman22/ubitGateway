@@ -17,6 +17,8 @@ router.post('/verifyOtp' , controller.verifyOtp)
 router.post('/verification' , controller.verification)
 router.put('/edit' , [authMiddleware] , controller.edit)
 router.delete('/delete' , [authMiddleware] , [admin], controller.delete)
+router.post('/experience' , [authMiddleware] ,  controller.experience)
+router.post('/education' , [authMiddleware] ,  controller.education)
 
 
 
