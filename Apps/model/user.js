@@ -15,6 +15,17 @@ const educationSchema = new Schema({
   endDate: Date,
 });
 
+const personalDetailsSchema = new Schema({
+  name: String,
+  skill: String,
+  picture: String,
+});
+
+const resumeSchema = new Schema({
+  resume: String,
+  portfolio: String,
+});
+
 const userSchema = new Schema({
   name: {
     type: String,
@@ -39,6 +50,8 @@ const userSchema = new Schema({
   },
   experience: [userExperienceSchema], 
   education: [educationSchema], 
+  personalDetails: [personalDetailsSchema], 
+  resume: [resumeSchema], 
 });
 
 const User = mongoose.model("Users", userSchema, "Users");
@@ -52,6 +65,8 @@ const schema = Joi.object({
     role : Joi.string().min(4).max(255),
     experience : Joi.string().min(0).max(255),
     education : Joi.string().min(0).max(255),
+    personalDetails : Joi.string().min(0).max(255),
+    resume : Joi.string().min(0).max(255),
     
 
 })

@@ -268,3 +268,37 @@ exports.education = async (req,res) => {
     res.status(500).json({ error: 'An error occurred while adding Education' });
   }
 }
+
+//USER PERSONAL DETAILS
+exports.personalDetails = async (req, res) => {
+  try {
+    const id = req.user.userId;
+    const { name, skill } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(id);
+
+    // Create a new PersonalDetails document
+    const newPersonalDetails = {
+      name,
+      skill,
+      picture: null, // We'll update this later if a file is uploaded
+    };
+
+    if (req.file) {
+      newPersonalDetails.picture = req.file.filename;
+    }
+
+    // Add the new PersonalDetails to the user's personalDetails array
+    user.personalDetails.push(newPersonalDetails);
+
+    // Save the updated user document
+    await user.save();
+
+    res.status(201).json({ message: 'Personal Details added successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while adding Personal Details' });
+  }
+};
+
+
