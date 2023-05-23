@@ -51,7 +51,7 @@ const userSchema = new Schema({
   experience: [userExperienceSchema], 
   education: [educationSchema], 
   personalDetails: [personalDetailsSchema], 
-  resume: [resumeSchema], 
+  resumeDetails: [resumeSchema], 
 });
 
 const User = mongoose.model("Users", userSchema, "Users");
@@ -66,7 +66,7 @@ const schema = Joi.object({
     experience : Joi.string().min(0).max(255),
     education : Joi.string().min(0).max(255),
     personalDetails : Joi.string().min(0).max(255),
-    resume : Joi.string().min(0).max(255),
+    resumeDetails : Joi.string().min(0).max(255),
     
 
 })

@@ -301,4 +301,34 @@ exports.personalDetails = async (req, res) => {
   }
 };
 
+//USER RESUME
+exports.resumeDetails = async (req,res) => {
+  try {
+    const id = req.user.userId;
+    const { portfolio } = req.body;
+
+    // Find the user by userId
+    const user = await User.findById(id);
+
+    // Create a new PersonalDetails document
+    const newResumeDetails = {
+      resume: null,
+      portfolio,
+    };
+
+    if (req.file) {
+      newResumeDetails.resume = req.file.filename;
+    }
+
+    // Add the new PersonalDetails to the user's personalDetails array
+    user.resumeDetails.push(newResumeDetails);
+
+    // Save the updated user document
+    await user.save();
+
+    res.status(201).json({ message: 'Resume Details added successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while adding Resume Details' });
+  }
+};
 

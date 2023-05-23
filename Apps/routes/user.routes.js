@@ -20,6 +20,7 @@ router.delete('/delete' , [authMiddleware] , [admin], controller.delete)
 router.post('/experience' , [authMiddleware] ,  controller.experience)
 router.post('/education' , [authMiddleware] ,  controller.education)
 router.post('/personalDetails' , [authMiddleware] ,upload.single('picture'),  controller.personalDetails)
+router.post('/resumeDetails' , [authMiddleware] ,upload.single('resume'),  controller.resumeDetails)
 
 
 
