@@ -332,3 +332,16 @@ exports.resumeDetails = async (req,res) => {
   }
 };
 
+//USER LIMITED DETAILS
+exports.getLimitedUserDetails = async (req, res) => {
+  try {
+    // Fetch the limited user details from the database
+    const users = await User.find({}, 'name personalDetails.skill personalDetails.picture');
+
+    res.status(200).json({ users });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching user details' });
+  }
+};
+
+

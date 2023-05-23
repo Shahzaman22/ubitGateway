@@ -10,7 +10,7 @@ const { upload } = require('../utils/multerConfig')
 router.post('/create',upload.single('img'), controller.create)
 router.post('/login' , controller.login)
 router.get('/getAllUsers', [authMiddleware] , [admin], controller.get)
-router.get('/getSingleUser', [authMiddleware] , [ admin ], controller.getSingleUser)
+router.get('/getSingleUser', [authMiddleware] , controller.getSingleUser)
 router.post('/forgetPassword' , controller.forgetPassword)
 router.post('/resetPassword' , controller.resetPassword)
 router.post('/verifyOtp' , controller.verifyOtp)
@@ -21,6 +21,7 @@ router.post('/experience' , [authMiddleware] ,  controller.experience)
 router.post('/education' , [authMiddleware] ,  controller.education)
 router.post('/personalDetails' , [authMiddleware] ,upload.single('picture'),  controller.personalDetails)
 router.post('/resumeDetails' , [authMiddleware] ,upload.single('resume'),  controller.resumeDetails)
+router.get('/limitedDetails' , [authMiddleware] ,upload.single('resume'),  controller.getLimitedUserDetails)
 
 
 
