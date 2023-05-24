@@ -7,16 +7,31 @@ const path = require("path");
 
 //GET USER
 exports.get = async (req, res) => {
-  const user = await User.find().select("-password");
-  res.json(user);
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while fetching users" });
+  }
 };
+
 
 //GET A SINGLE USER
 exports.getSingleUser = async (req, res) => {
-  const id = req.user.userId;
-  const user = await User.findById(id).select("-password");
-  res.json(user);
+  try {
+    const id = req.user.userId;
+    const user = await User.findById(id).select("-password");
+    
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while fetching the user" });
+  }
 };
+
 
 //CREATE USER AND GENERATE OTP
 exports.create = async (req, res) => {
@@ -28,12 +43,7 @@ exports.create = async (req, res) => {
     return res.status(400).send("User already registered with that email");
 
   let { name, email, password, role } = req.body;
-  // let img;
-  // if (req.file) {
-  //   img = req.file.path;
-  // }
-
-  // console.log("Img => ",img);
+ 
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
 
@@ -81,7 +91,8 @@ exports.login = async (req, res) => {
 
 //FORGET PASSWORD
 exports.forgetPassword = async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
+  try {
+    const user = await User.findOne({ email: req.body.email });
   if (!user) return res.status(403).send("Email not found");
 
   const { email } = req.body;
@@ -90,6 +101,12 @@ exports.forgetPassword = async (req, res) => {
   req.session.otpCode = otpCode;
   req.session.userDetails = { email };
   res.send("Email sent for OTP verification");
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while processing the request" });
+
+  }
+  
+
 };
 
 //VERIFICATION OTP FOR RESET PASSWORD
@@ -97,13 +114,16 @@ exports.verification = async (req, res) => {
   const userOtp = req.body.otp;
   const storedOtp = req.session.otpCode;
 
-  if (userOtp === storedOtp) {
+  if (!userOtp) {
+    res.status(400).send({ error: "OTP is required" });
+  } else if (userOtp === storedOtp) {
     req.session.otpCode = null;
     res.status(200).send({ message: "OTP verification successful" });
   } else {
     res.status(400).send({ error: "Invalid OTP" });
   }
 };
+
 
 //RESET PASSWORD
 exports.resetPassword = async (req, res) => {
@@ -171,12 +191,22 @@ exports.verifyOtp = async (req, res) => {
 //UPDATE USER
 exports.edit = async (req, res) => {
   const id = req.user.userId;
-  const user = await User.findByIdAndUpdate(id, {
-    name: req.body.name,
-    email: req.body.email,
-    gender: req.body.gender,
-  });
-  res.json(user);
+  try {
+    const user = await User.findByIdAndUpdate(id, {
+      name: req.body.name,
+      email: req.body.email,
+      gender: req.body.gender,
+    });
+  
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+  
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred while updating the user" });
+  }
+  
 };
 
 //DELETE USER
