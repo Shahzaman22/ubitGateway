@@ -3,13 +3,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const { generateOTP } = require("../utils/otp");
-const path = require("path");
 
 //GET USER
 exports.get = async (req, res) => {
   try {
     const users = await User.find().select("-password");
-    res.json(users);
+    res.json({users :users});
   } catch (error) {
     res.status(500).json({ error: "An error occurred while fetching users" });
   }
@@ -23,7 +22,7 @@ exports.getSingleUser = async (req, res) => {
     const user = await User.findById(id).select("-password");
     
     if (user) {
-      res.json(user);
+      res.json({user : user});
     } else {
       res.status(404).json({ error: "User not found" });
     }
@@ -40,7 +39,7 @@ exports.create = async (req, res) => {
 
   let user = await User.findOne({ email: req.body.email });
   if (user)
-    return res.status(400).send("User already registered with that email");
+    return res.status(400).send({message : "User already registered with that email"});
 
   let { name, email, password, role } = req.body;
  
@@ -58,10 +57,10 @@ exports.create = async (req, res) => {
       role,
     };
 
-    res.send("Email sent for OTP verification");
+    res.send({message : "Email sent for OTP verification"});
   } catch (error) {
     console.error(error);
-    res.status(500).send("Failed to send email");
+    res.status(500).send({error : "Failed to send email"});
   }
 };
 
@@ -93,14 +92,14 @@ exports.login = async (req, res) => {
 exports.forgetPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(403).send("Email not found");
+  if (!user) return res.status(403).send({error : "Email not found"});
 
   const { email } = req.body;
   const otpCode = await generateOTP(email);
 
   req.session.otpCode = otpCode;
   req.session.userDetails = { email };
-  res.send("Email sent for OTP verification");
+  res.send({message : "Email sent for OTP verification"});
   } catch (error) {
     res.status(500).json({ error: "An error occurred while processing the request" });
 
@@ -172,7 +171,6 @@ exports.verifyOtp = async (req, res) => {
       req.session.otpCode = null;
       req.session.userDetails = null;
 
-      // res.json(user);
       res
         .status(200)
         .json({
@@ -181,10 +179,10 @@ exports.verifyOtp = async (req, res) => {
         });
     } catch (error) {
       console.error(error);
-      res.status(500).send("Failed to create user");
+      res.status(500).send({error : "Failed to create user"});
     }
   } else {
-    res.status(400).send("Invalid OTP");
+    res.status(400).send({error : "Invalid OTP"});
   }
 };
 
@@ -202,7 +200,7 @@ exports.edit = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
   
-    res.json(user);
+    res.json({users : user});
   } catch (error) {
     res.status(500).json({ error: "An error occurred while updating the user" });
   }
@@ -214,7 +212,7 @@ exports.delete = async (req, res) => {
   try {
     const id = req.query.id;
     if (!id) {
-      return res.status(400).send("User Id is required");
+      return res.status(400).send({error : "User Id is required"});
     }
     const user = await User.findByIdAndDelete(id);
     if (!user) {
