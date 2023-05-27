@@ -7,8 +7,10 @@ const app = express();
 const server = http.createServer(app);
 const session = require("express-session");
 const path = require("path");
+const morgan = require('morgan')
 const port = process.env.PORT || 4000;
 
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(
   session({

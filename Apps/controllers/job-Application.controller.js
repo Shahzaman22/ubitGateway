@@ -18,3 +18,23 @@ exports.post = async (req,res ) => {
     
 
 };
+
+
+// Count Users Applied for a Job
+exports.getJobApplicationCount = async (req, res) => {
+  try {
+    const jobId = req.query.jobId;
+
+    const appliedUsersCount = await JobApplication.countDocuments({ jobId: jobId });
+
+    res.json({ appliedUsersCount });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching the applied users count' });
+  }
+};
+
+
+
+
+
+

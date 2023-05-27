@@ -6,5 +6,7 @@ const admin =  require('../middleware/admin')
 const { upload } =  require('../utils/multerConfig')
 
 router.post('/application', [authMiddleware], upload.single('resume'), controller.post);
+router.get('/application/count' , [authMiddleware] ,controller.getJobApplicationCount);
+
 
 module.exports = router;

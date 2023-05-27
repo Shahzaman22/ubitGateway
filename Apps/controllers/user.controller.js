@@ -67,7 +67,7 @@ exports.create = async (req, res) => {
 //LOGIN
 exports.login = async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(403).send("Email not found");
+  if (!user) return res.status(403).send({error : "Email not found"});
 
   let isPassword = await bcrypt.compare(req.body.password, user.password);
 
@@ -81,10 +81,10 @@ exports.login = async (req, res) => {
       .json({
         token,
         user: _.pick(user, ["_id", "name", "email", "role", "gender"]),
-        msg: "Login Successfully",
+        message: "Login Successfully",
       });
   } else {
-    return res.status(400).send("INVALID PASSWORD");
+    return res.status(400).send({error : "INVALID PASSWORD"});
   }
 };
 
@@ -175,7 +175,7 @@ exports.verifyOtp = async (req, res) => {
         .status(200)
         .json({
           user: _.pick(user, ["_id", "name", "email", "role"]),
-          msg: "Verified Successfully",
+          message: "Verified Successfully",
         });
     } catch (error) {
       console.error(error);
@@ -190,11 +190,7 @@ exports.verifyOtp = async (req, res) => {
 exports.edit = async (req, res) => {
   const id = req.user.userId;
   try {
-    const user = await User.findByIdAndUpdate(id, {
-      name: req.body.name,
-      email: req.body.email,
-      gender: req.body.gender,
-    });
+    const user = await User.findByIdAndUpdate(id, req.body);
   
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -218,7 +214,7 @@ exports.delete = async (req, res) => {
     if (!user) {
       return res.status(404).send({ error: "User not found" });
     }
-    res.status(200).json({ user, msg: "Deleted Successfully" });
+    res.status(200).json({ user, message: "Deleted Successfully" });
   } catch (error) {
     res
       .status(500)
@@ -243,7 +239,7 @@ exports.changeStatus = async (req, res) => {
   }
 };
 
-//USER EXPERIENCE
+//POST USER EXPERIENCE
 exports.experience = async (req, res) => {
   try {
     const id = req.user.userId;
@@ -269,7 +265,7 @@ exports.experience = async (req, res) => {
   }
 };
 
-//USER EDUCATION
+//POST USER EDUCATION
 exports.education = async (req,res) => {
   try {
     const id = req.user.userId;
@@ -297,7 +293,7 @@ exports.education = async (req,res) => {
   }
 }
 
-//USER PERSONAL DETAILS
+//POST USER PERSONAL DETAILS
 exports.personalDetails = async (req, res) => {
   try {
     const id = req.user.userId;
@@ -329,8 +325,8 @@ exports.personalDetails = async (req, res) => {
   }
 };
 
-//USER RESUME
-exports.resumeDetails = async (req,res) => {
+//POST USER RESUME
+exports.resumeDetails = async (req, res) => {
   try {
     const id = req.user.userId;
     const { portfolio } = req.body;
@@ -345,7 +341,11 @@ exports.resumeDetails = async (req,res) => {
     };
 
     if (req.file) {
-      newResumeDetails.resume = req.file.filename;
+      if (req.file.mimetype === 'application/pdf') {
+        newResumeDetails.resume = req.file.filename;
+      } else {
+        throw new Error({error : 'Only PDF files are accepted for the resume'});
+      }
     }
 
     // Add the new PersonalDetails to the user's personalDetails array
@@ -356,9 +356,10 @@ exports.resumeDetails = async (req,res) => {
 
     res.status(201).json({ message: 'Resume Details added successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while adding Resume Details' });
+    res.status(500).json({ error: error.message || 'An error occurred while adding Resume Details' });
   }
 };
+
 
 //USER LIMITED DETAILS
 exports.getLimitedUserDetails = async (req, res) => {
