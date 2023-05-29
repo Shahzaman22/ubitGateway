@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const { generateOTP } = require("../utils/otp");
+const { use } = require("passport/lib");
 
 //GET USER
 exports.get = async (req, res) => {
@@ -190,13 +191,12 @@ exports.verifyOtp = async (req, res) => {
 exports.edit = async (req, res) => {
   const id = req.user.userId;
   try {
-    const user = await User.findByIdAndUpdate(id, req.body);
-  
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-  
-    res.json({users : user});
+    const user = await User.findByIdAndUpdate(id,{
+      name : req.body.name,
+      email : req.body.email,
+      password : req.body.password
+    })
+    res.json(user)
   } catch (error) {
     res.status(500).json({ error: "An error occurred while updating the user" });
   }
@@ -265,6 +265,34 @@ exports.experience = async (req, res) => {
   }
 };
 
+//UPDATE EXPERIENCE
+exports.updateExperience = async (req, res) => {
+  const id = req.user.userId;
+  const { position, company, startDate, endDate } = req.body; 
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: id, 'experience.position': { $exists: true } }, 
+      {
+        $set: {
+          'experience.$.position': position,
+          'experience.$.company': company,
+          'experience.$.startDate': startDate,
+          'experience.$.endDate': endDate
+        }
+      },
+      { new: true }
+    );
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while updating Experience' });
+  }
+};
+
+
+
+
 //POST USER EDUCATION
 exports.education = async (req,res) => {
   try {
@@ -292,6 +320,31 @@ exports.education = async (req,res) => {
     res.status(500).json({ error: 'An error occurred while adding Education' });
   }
 }
+
+//UPDATE EDUCATION
+exports.updateEducation = async (req, res) => {
+  const id = req.user.userId;
+  const { institution, degree, startDate, endDate } = req.body; 
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: id, 'education.degree': { $exists: true } }, 
+      {
+        $set: {
+          'education.$.degree': degree,
+          'education.$.startDate': startDate,
+          'education.$.endDate': endDate
+        }
+      },
+      { new: true }
+    );
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while updating Education' });
+  }
+};
+
 
 //POST USER PERSONAL DETAILS
 exports.personalDetails = async (req, res) => {
@@ -324,6 +377,31 @@ exports.personalDetails = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while adding Personal Details' });
   }
 };
+
+//UPDATE PERSONAL DETAILS
+exports.updatePersonalDetails = async (req, res) => {
+  const id = req.user.userId;
+  const { name, skill, picture } = req.body; 
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: id, 'personalDetails.name': { $exists: true } }, 
+      {
+        $set: {
+          'personalDetails.$.name': name,
+          'personalDetails.$.skill': skill,
+          'personalDetails.$.picture': picture
+        }
+      },
+      { new: true }
+    );
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while updating Personal Details' });
+  }
+};
+
 
 //POST USER RESUME
 exports.resumeDetails = async (req, res) => {
