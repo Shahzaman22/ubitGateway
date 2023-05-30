@@ -352,55 +352,66 @@ exports.personalDetails = async (req, res) => {
     const id = req.user.userId;
     const { name, skill } = req.body;
 
-    // Find the user by userId
     const user = await User.findById(id);
 
-    // Create a new PersonalDetails document
     const newPersonalDetails = {
       name,
       skill,
-      picture: null, // We'll update this later if a file is uploaded
+      picture: null, 
     };
 
     if (req.file) {
-      newPersonalDetails.picture = req.file.filename;
+      if (req.file.mimetype === 'application/pdf') {
+        newPersonalDetails.picture = req.file.filename;
+      } else {
+        throw new Error('Only PDF files are accepted for the resume');
+      }
     }
 
-    // Add the new PersonalDetails to the user's personalDetails array
     user.personalDetails.push(newPersonalDetails);
 
-    // Save the updated user document
     await user.save();
 
     res.status(201).json({ message: 'Personal Details added successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while adding Personal Details' });
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
 };
+
 
 //UPDATE PERSONAL DETAILS
 exports.updatePersonalDetails = async (req, res) => {
   const id = req.user.userId;
-  const { name, skill, picture } = req.body; 
+  const { name, skill } = req.body;
 
   try {
+    if (req.file && req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: 'Only PDF files are accepted for the picture' });
+    }
+
     const user = await User.findOneAndUpdate(
       { _id: id, 'personalDetails.name': { $exists: true } }, 
       {
         $set: {
           'personalDetails.$.name': name,
           'personalDetails.$.skill': skill,
-          'personalDetails.$.picture': picture
+          'personalDetails.$.picture': req.file ? req.file.filename : null
         }
       },
       { new: true }
     );
 
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while updating Personal Details' });
+    res.status(500).json({ error: error.message });
   }
 };
+
 
 
 //POST USER RESUME
@@ -438,6 +449,45 @@ exports.resumeDetails = async (req, res) => {
   }
 };
 
+//UPDATE RESUME DETAILS
+exports.updateResumeDetails = async (req, res) => {
+  const userId = req.user.userId;
+  const { portfolio } = req.body;
+
+  try {
+    if (req.file && req.file.mimetype !== 'application/pdf') {
+      return res.status(400).json({ error: 'Only PDF files are accepted for the resume' });
+    }
+
+    // Find the user by userId and the resumeDetails with the specified resumeDetailsId
+    const user = await User.findOneAndUpdate(
+      { _id: userId, 'resumeDetails._id': req.params.resumeDetailsId },
+      {
+        $set: {
+          'resumeDetails.$.portfolio': portfolio,
+          'resumeDetails.$.resume': req.file ? req.file.filename : null
+        }
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+ 
+  
+
+
+ 
+
+
 
 //USER LIMITED DETAILS
 exports.getLimitedUserDetails = async (req, res) => {
@@ -450,5 +500,4 @@ exports.getLimitedUserDetails = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching user details' });
   }
 };
-
 
