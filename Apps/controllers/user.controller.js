@@ -81,7 +81,7 @@ exports.login = async (req, res) => {
       .status(200)
       .json({
         token,
-        user: _.pick(user, ["_id", "name", "email", "role", "gender"]),
+        user: _.pick(user, ["_id", "name", "email", "role"]),
         message: "Login Successfully",
       });
   } else {
@@ -386,9 +386,9 @@ exports.updatePersonalDetails = async (req, res) => {
   const { name, skill } = req.body;
 
   try {
-    if (req.file && req.file.mimetype !== 'application/pdf') {
-      return res.status(400).json({ error: 'Only PDF files are accepted for the picture' });
-    }
+    // if (req.file && req.file.mimetype !== 'application/pdf') {
+    //   return res.status(400).json({ error: 'Only PDF files are accepted for the picture' });
+    // }
 
     const user = await User.findOneAndUpdate(
       { _id: id, 'personalDetails.name': { $exists: true } }, 
@@ -451,17 +451,16 @@ exports.resumeDetails = async (req, res) => {
 
 //UPDATE RESUME DETAILS
 exports.updateResumeDetails = async (req, res) => {
-  const userId = req.user.userId;
+   const id = req.user.userId;
   const { portfolio } = req.body;
 
   try {
     if (req.file && req.file.mimetype !== 'application/pdf') {
-      return res.status(400).json({ error: 'Only PDF files are accepted for the resume' });
+      return res.status(400).json({ error: 'Only PDF files are accepted for the picture' });
     }
 
-    // Find the user by userId and the resumeDetails with the specified resumeDetailsId
     const user = await User.findOneAndUpdate(
-      { _id: userId, 'resumeDetails._id': req.params.resumeDetailsId },
+      { _id: id, 'resumeDetails.portfolio': { $exists: true } }, 
       {
         $set: {
           'resumeDetails.$.portfolio': portfolio,
@@ -479,6 +478,8 @@ exports.updateResumeDetails = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+
+ 
 };
 
  
