@@ -27,6 +27,9 @@ const resumeSchema = new Schema({
 });
 
 const userSchema = new Schema({
+  googleId : {
+    type: String,
+  },
   name: {
     type: String,
     minlength: 5,
@@ -58,6 +61,7 @@ const User = mongoose.model("Users", userSchema, "Users");
 
 
 const schema = Joi.object({
+    googleId : Joi.string().min(0).max(255),
     name : Joi.string().min(5).max(255),
     email : Joi.string().min(8).max(255).email(),
     password : Joi.string().min(5).max(255),
