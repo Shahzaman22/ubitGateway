@@ -26,10 +26,7 @@ router.get("/failure", (req, res) => {
 });
 
 router.get("/protected", [isLoggedIn], (req, res) => {
-  res.json(`Hello ${req.user.name}. You are Logged In`);
-  console.log("Name =>",req.user.name);
-  console.log("Email =>",req.user.email);
-  console.log("Role =>",req.user.role);
+  res.json(`Hello ${req.user.name}. You are Logged In, Your email is ${req.user.email} and your role is ${req.user.role}`);
 });
 
 router.get("/logout", (req, res) => {
