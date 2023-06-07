@@ -1,25 +1,26 @@
 const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth2").Strategy;
+const LinkedInStrategy = require("passport-linkedin-oauth2").Strategy;
 const { User } = require("../model/user");
 
 passport.use(
-  new GoogleStrategy(
+  new LinkedInStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:4000/api/auth/google/callback",
+      clientID: process.env.LINKEDIN_CLIENT_ID,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+      callbackURL: "http://localhost:4000/api/auth/linkedin/callback",
       passReqToCallback: true,
+      scope: ["r_emailaddress", "r_liteprofile"],
     },
+
     async (req, accessToken, refreshToken, profile, done) => {
       try {
-        const existingUser = await User.findOne({ email: profile.email });
+        const existingUser = await User.findOne({ email: profile.emails[0].value });
 
         if (existingUser) {
           console.log("existingUser", existingUser);
           done(null, existingUser);
         } else {
           const newUser = await User.create({
-            googleId: profile.id,
             name: profile.displayName,
             email: profile.emails[0].value,
             role: profile.role,
@@ -34,11 +35,12 @@ passport.use(
   )
 );
 
-passport.serializeUser(function (user, done) {
+passport.serializeUser((user, done) => {
   done(null, user);
 });
 
-passport.deserializeUser(function (user, done) {
+passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
+module.exports = passport;

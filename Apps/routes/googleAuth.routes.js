@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 require("../middleware/googleOauth");
 const passport = require("passport");
+const {User} = require('../model/user')
 
 function isLoggedIn(req, res, next) {
   req.user ? next() : res.sendStatus(401);
@@ -25,8 +26,9 @@ router.get("/failure", (req, res) => {
   res.send("something went wrong..");
 });
 
-router.get("/protected", [isLoggedIn], (req, res) => {
-  res.json(`Hello ${req.user.name}. You are Logged In, Your email is ${req.user.email} and your role is ${req.user.role}`);
+router.get("/protected", [isLoggedIn], async (req, res) => {
+  const user = await User.find()
+  res.json(user)
 });
 
 router.get("/logout", (req, res) => {
@@ -38,7 +40,7 @@ router.get("/logout", (req, res) => {
       if (err) {
         return next(err);
       }
-      res.send("Goodbye");
+      res.json("Goodbye");
     });
   });
 });
