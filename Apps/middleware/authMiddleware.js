@@ -4,6 +4,7 @@ module.exports = function (req,res,next){
     if(!token) return res.status(404).send('Access denied . No token provided')
 
     try {
+        // eslint-disable-next-line no-undef
         const decoded = jwt.verify(token,process.env.PRIVATE_KEY)
         req.user = decoded;
         next()    

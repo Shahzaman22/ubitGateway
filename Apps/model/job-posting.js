@@ -16,6 +16,9 @@ const jobSchema = new Schema({
     enum : ["Internship","Halftime","Fulltime"],
     required : true,
 },
+company_name : {
+  type : String
+},
   description: String,
   img : {
     type : String
@@ -29,6 +32,7 @@ const schema = Joi.object({
   title : Joi.string().min(5).max(255),
   location : Joi.string().min(0).max(255),
   jobType : Joi.string().min(0).max(255),
+  company_name : Joi.string().min(0).max(255),
   description : Joi.string().min(0).max(1024),
   img : Joi.string().min(0).max(255),
 }) 

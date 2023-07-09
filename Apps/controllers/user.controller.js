@@ -3,47 +3,46 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 const { generateOTP } = require("../utils/otp");
-const { use } = require("passport/lib");
 
 //GET USER
 exports.get = async (req, res) => {
   try {
     const users = await User.find().select("-password");
-    res.json({users :users});
+    res.json({ users: users });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred while fetching users" });
+    res.status(500).json({ error: error.message });
   }
 };
-
 
 //GET A SINGLE USER
 exports.getSingleUser = async (req, res) => {
   try {
     const id = req.user.userId;
     const user = await User.findById(id).select("-password");
-    
+
     if (user) {
-      res.json({user : user});
+      res.json({ user: user });
     } else {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ error: "An error occurred while fetching the user" });
+    res.status(500).json({ error: error.message });
   }
 };
-
 
 //CREATE USER AND GENERATE OTP
 exports.create = async (req, res) => {
   const { error } = schema.validate(req.body);
-  if (error) return res.status(404).send(error.details[0].message);
+  if (error) return res.status(404).json(error.details[0].message);
 
   let user = await User.findOne({ email: req.body.email });
   if (user)
-    return res.status(400).send({message : "User already registered with that email"});
+    return res
+      .status(400)
+      .send({ error: "User already registered with that email" });
 
   let { name, email, password, role } = req.body;
- 
+
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
 
@@ -58,34 +57,37 @@ exports.create = async (req, res) => {
       role,
     };
 
-    res.send({message : "Email sent for OTP verification"});
+    res.json({ message: "Email sent for OTP verification" });
   } catch (error) {
     console.error(error);
-    res.status(500).send({error : "Failed to send email"});
+    res.status(500).send({ error: error.message });
   }
 };
 
 //LOGIN
 exports.login = async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(403).send({error : "Email not found"});
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(403).json({ error: "Email not found" });
 
-  let isPassword = await bcrypt.compare(req.body.password, user.password);
+    let isPassword = await bcrypt.compare(req.body.password, user.password);
 
-  if (isPassword) {
-    const token = await jwt.sign(
-      { userId: user._id, userRole: user.role },
-      process.env.PRIVATE_KEY
-    );
-    res
-      .status(200)
-      .json({
+    if (isPassword) {
+      const token = await jwt.sign(
+        { userId: user._id, userRole: user.role },
+        // eslint-disable-next-line no-undef
+        process.env.PRIVATE_KEY
+      );
+      res.status(200).json({
         token,
         user: _.pick(user, ["_id", "name", "email", "role"]),
         message: "Login Successfully",
       });
-  } else {
-    return res.status(400).send({error : "INVALID PASSWORD"});
+    } else {
+      return res.status(400).json({ error: "INVALID PASSWORD" });
+    }
+  } catch (error) {
+    res.json({ error: error.message });
   }
 };
 
@@ -93,20 +95,19 @@ exports.login = async (req, res) => {
 exports.forgetPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-  if (!user) return res.status(403).send({error : "Email not found"});
+    if (!user) return res.status(403).send({ error: "Email not found" });
 
-  const { email } = req.body;
-  const otpCode = await generateOTP(email);
+    const { email } = req.body;
+    const otpCode = await generateOTP(email);
 
-  req.session.otpCode = otpCode;
-  req.session.userDetails = { email };
-  res.send({message : "Email sent for OTP verification"});
+    req.session.otpCode = otpCode;
+    req.session.userDetails = { email };
+    res.json({ message: "Email sent for OTP verification" });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred while processing the request" });
-
+    res
+      .status(500)
+      .json({ error: "An error occurred while processing the request" });
   }
-  
-
 };
 
 //VERIFICATION OTP FOR RESET PASSWORD
@@ -124,7 +125,6 @@ exports.verification = async (req, res) => {
   }
 };
 
-
 //RESET PASSWORD
 exports.resetPassword = async (req, res) => {
   const password = req.body.password;
@@ -132,7 +132,7 @@ exports.resetPassword = async (req, res) => {
   const userDetails = req.session.userDetails;
 
   if (password !== confirmPassword) {
-    return res.status(400).send({ error: "Passwords do not match" });
+    return res.status(400).json({ error: "Passwords do not match" });
   }
 
   try {
@@ -145,16 +145,13 @@ exports.resetPassword = async (req, res) => {
       { email: userDetails.email },
       { password: hashedPassword }
     );
-
-    console.log("Details =>", userDetails);
-
     req.session.userDetails = null;
 
-    res.status(200).send({ message: "Password updated successfully" });
+    res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
     res
       .status(500)
-      .send({ error: "An error occurred while updating password" });
+      .json({ error: "An error occurred while updating password" });
   }
 };
 
@@ -172,18 +169,15 @@ exports.verifyOtp = async (req, res) => {
       req.session.otpCode = null;
       req.session.userDetails = null;
 
-      res
-        .status(200)
-        .json({
-          user: _.pick(user, ["_id", "name", "email", "role"]),
-          message: "Verified Successfully",
-        });
+      res.status(200).json({
+        user: _.pick(user, ["_id", "name", "email", "role"]),
+        message: "Verified Successfully",
+      });
     } catch (error) {
-      console.error(error);
-      res.status(500).send({error : "Failed to create user"});
+      res.status(500).json({ error: error.message });
     }
   } else {
-    res.status(400).send({error : "Invalid OTP"});
+    res.status(400).json({ error: "Invalid OTP" });
   }
 };
 
@@ -191,16 +185,15 @@ exports.verifyOtp = async (req, res) => {
 exports.edit = async (req, res) => {
   const id = req.user.userId;
   try {
-    const user = await User.findByIdAndUpdate(id,{
-      name : req.body.name,
-      email : req.body.email,
-      password : req.body.password
-    })
-    res.json(user)
+    const user = await User.findByIdAndUpdate(id, {
+      name: req.body.name,
+      email: req.body.email,
+      password: req.body.password,
+    });
+    res.json({ user: user });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred while updating the user" });
+    res.status(500).json({ error: error.message });
   }
-  
 };
 
 //DELETE USER
@@ -208,17 +201,15 @@ exports.delete = async (req, res) => {
   try {
     const id = req.query.id;
     if (!id) {
-      return res.status(400).send({error : "User Id is required"});
+      return res.status(400).json({ error: "User Id is required" });
     }
     const user = await User.findByIdAndDelete(id);
     if (!user) {
-      return res.status(404).send({ error: "User not found" });
+      return res.status(404).json({ error: "User not found" });
     }
     res.status(200).json({ user, message: "Deleted Successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "An error occurred while deleting the user" });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -226,7 +217,7 @@ exports.delete = async (req, res) => {
 exports.changeStatus = async (req, res) => {
   let user = await User.findOne({ email: req.body.email });
   if (!user) {
-    return res.status(400).send("Invalid email");
+    return res.status(400).json({ error: "Invalid email" });
   }
 
   if (req.body.is_Active) {
@@ -243,7 +234,7 @@ exports.changeStatus = async (req, res) => {
 exports.experience = async (req, res) => {
   try {
     const id = req.user.userId;
-    const {position, company, startDate, endDate } = req.body;
+    const { position, company, startDate, endDate } = req.body;
 
     const user = await User.findById(id);
 
@@ -259,45 +250,40 @@ exports.experience = async (req, res) => {
 
     res.status(201).json({ message: "User Experience added successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: "An error occurred while adding User Experience" });
+    res.status(500).json({ error: error.message });
   }
 };
 
 //UPDATE EXPERIENCE
 exports.updateExperience = async (req, res) => {
   const id = req.user.userId;
-  const { position, company, startDate, endDate } = req.body; 
+  const { position, company, startDate, endDate } = req.body;
 
   try {
     const user = await User.findOneAndUpdate(
-      { _id: id, 'experience.position': { $exists: true } }, 
+      { _id: id, "experience.position": { $exists: true } },
       {
         $set: {
-          'experience.$.position': position,
-          'experience.$.company': company,
-          'experience.$.startDate': startDate,
-          'experience.$.endDate': endDate
-        }
+          "experience.$.position": position,
+          "experience.$.company": company,
+          "experience.$.startDate": startDate,
+          "experience.$.endDate": endDate,
+        },
       },
       { new: true }
     );
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while updating Experience' });
+    res.status(500).json({ error: error.message });
   }
 };
 
-
-
-
 //POST USER EDUCATION
-exports.education = async (req,res) => {
+exports.education = async (req, res) => {
   try {
     const id = req.user.userId;
-    const {  degree, startDate, endDate, } = req.body;
+    const { degree, startDate, endDate } = req.body;
 
     // Find the user by userId
     const user = await User.findById(id);
@@ -315,36 +301,35 @@ exports.education = async (req,res) => {
     // Save the updated user document
     await user.save();
 
-    res.status(201).json({ message: 'Education added successfully' });
+    res.status(201).json({ message: "Education added successfully" });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while adding Education' });
+    res.status(500).json({ error: error.message });
   }
-}
+};
 
 //UPDATE EDUCATION
 exports.updateEducation = async (req, res) => {
   const id = req.user.userId;
-  const { institution, degree, startDate, endDate } = req.body; 
+  const { degree, startDate, endDate } = req.body;
 
   try {
     const user = await User.findOneAndUpdate(
-      { _id: id, 'education.degree': { $exists: true } }, 
+      { _id: id, "education.degree": { $exists: true } },
       {
         $set: {
-          'education.$.degree': degree,
-          'education.$.startDate': startDate,
-          'education.$.endDate': endDate
-        }
+          "education.$.degree": degree,
+          "education.$.startDate": startDate,
+          "education.$.endDate": endDate,
+        },
       },
       { new: true }
     );
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while updating Education' });
+    res.status(500).json({ error: error.message });
   }
 };
-
 
 //POST USER PERSONAL DETAILS
 exports.personalDetails = async (req, res) => {
@@ -357,14 +342,14 @@ exports.personalDetails = async (req, res) => {
     const newPersonalDetails = {
       name,
       skill,
-      picture: null, 
+      picture: null,
     };
 
     if (req.file) {
-      if (req.file.mimetype === 'application/pdf') {
+      if (req.file.mimetype === "application/pdf") {
         newPersonalDetails.picture = req.file.filename;
       } else {
-        throw new Error('Only PDF files are accepted for the resume');
+        throw new Error("Only PDF files are accepted for the resume");
       }
     }
 
@@ -372,13 +357,12 @@ exports.personalDetails = async (req, res) => {
 
     await user.save();
 
-    res.status(201).json({ message: 'Personal Details added successfully' });
+    res.status(201).json({ message: "Personal Details added successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
 };
-
 
 //UPDATE PERSONAL DETAILS
 exports.updatePersonalDetails = async (req, res) => {
@@ -386,24 +370,20 @@ exports.updatePersonalDetails = async (req, res) => {
   const { name, skill } = req.body;
 
   try {
-    // if (req.file && req.file.mimetype !== 'application/pdf') {
-    //   return res.status(400).json({ error: 'Only PDF files are accepted for the picture' });
-    // }
-
     const user = await User.findOneAndUpdate(
-      { _id: id, 'personalDetails.name': { $exists: true } }, 
+      { _id: id, "personalDetails.name": { $exists: true } },
       {
         $set: {
-          'personalDetails.$.name': name,
-          'personalDetails.$.skill': skill,
-          'personalDetails.$.picture': req.file ? req.file.filename : null
-        }
+          "personalDetails.$.name": name,
+          "personalDetails.$.skill": skill,
+          "personalDetails.$.picture": req.file ? req.file.filename : null,
+        },
       },
       { new: true }
     );
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json(user);
@@ -411,8 +391,6 @@ exports.updatePersonalDetails = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
 
 //POST USER RESUME
 exports.resumeDetails = async (req, res) => {
@@ -430,10 +408,12 @@ exports.resumeDetails = async (req, res) => {
     };
 
     if (req.file) {
-      if (req.file.mimetype === 'application/pdf') {
+      if (req.file.mimetype === "application/pdf") {
         newResumeDetails.resume = req.file.filename;
       } else {
-        throw new Error({error : 'Only PDF files are accepted for the resume'});
+        throw new Error({
+          error: "Only PDF files are accepted for the resume",
+        });
       }
     }
 
@@ -443,62 +423,56 @@ exports.resumeDetails = async (req, res) => {
     // Save the updated user document
     await user.save();
 
-    res.status(201).json({ message: 'Resume Details added successfully' });
+    res.status(201).json({ message: "Resume Details added successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message || 'An error occurred while adding Resume Details' });
+    res.status(500).json({ error: error.message });
   }
 };
 
 //UPDATE RESUME DETAILS
 exports.updateResumeDetails = async (req, res) => {
-   const id = req.user.userId;
+  const id = req.user.userId;
   const { portfolio } = req.body;
 
   try {
-    if (req.file && req.file.mimetype !== 'application/pdf') {
-      return res.status(400).json({ error: 'Only PDF files are accepted for the picture' });
+    if (req.file && req.file.mimetype !== "application/pdf") {
+      return res
+        .status(400)
+        .json({ error: "Only PDF files are accepted for the picture" });
     }
 
     const user = await User.findOneAndUpdate(
-      { _id: id, 'resumeDetails.portfolio': { $exists: true } }, 
+      { _id: id, "resumeDetails.portfolio": { $exists: true } },
       {
         $set: {
-          'resumeDetails.$.portfolio': portfolio,
-          'resumeDetails.$.resume': req.file ? req.file.filename : null
-        }
+          "resumeDetails.$.portfolio": portfolio,
+          "resumeDetails.$.resume": req.file ? req.file.filename : null,
+        },
       },
       { new: true }
     );
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-
- 
 };
-
- 
-  
-
-
- 
-
-
 
 //USER LIMITED DETAILS
 exports.getLimitedUserDetails = async (req, res) => {
   try {
     // Fetch the limited user details from the database
-    const users = await User.find({}, 'name personalDetails.skill personalDetails.picture');
+    const users = await User.find(
+      {},
+      "name personalDetails.skill personalDetails.picture"
+    );
 
     res.status(200).json({ users });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while fetching user details' });
+    res.status(500).json({ error: error.message });
   }
 };
-

@@ -13,7 +13,7 @@ exports.post = async (req,res ) => {
       const savedJobApplication = await newJobApplication.save();
       res.status(201).json(savedJobApplication);
     } catch (error) {
-      res.status(500).json({ error: "An error occurred while submitting the job application" });
+      res.status(500).json({ error: error.message });
     }
     
 
@@ -29,7 +29,7 @@ exports.getJobApplicationCount = async (req, res) => {
 
     res.json({ appliedUsersCount });
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred while fetching the applied users count' });
+    res.status(500).json({ error: error.message });
   }
 };
 

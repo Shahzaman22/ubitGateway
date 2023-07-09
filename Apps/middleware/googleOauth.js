@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth2").Strategy;
 const { User } = require("../model/user");

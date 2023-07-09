@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const passport = require("passport");
 const express = require("express");
 const http = require("http");

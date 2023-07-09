@@ -4,7 +4,7 @@ const { Job, schema } = require("../model/job-posting");
 exports.jobPost = async (req, res) => {
   try {
     const { error } = schema.validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    if (error) return res.status(400).json(error.details[0].message);
 
     const newJob = new Job(req.body);
 
@@ -16,27 +16,29 @@ exports.jobPost = async (req, res) => {
 
     try {
       const savedJob = await newJob.save();
+      const imageUrl = req.protocol + '://' + req.get('host') + '/' + img;
+      savedJob.img = imageUrl;
       res.status(201).json(savedJob);
     } catch (error) {
       res
         .status(500)
-        .json({ error: "An error occurred while creating the job posting" });
+        .json({ error: error.message });
     }
   } catch (error) {
     res
       .status(500)
-      .json({ error: "An error occurred while creating the job posting" });
+      .json({ error: error.message });
   }
 };
 //GET ALL JOB POSTS
 exports.getJobPosts = async (req, res) => {
   try {
-    const jobs = await Job.find();
+    const jobs = await Job.find().sort({ postedAt : -1 });
     res.status(200).json(jobs);
   } catch (error) {
     res
       .status(500)
-      .json({ error: "An error occurred while retrieving the jobs" });
+      .json({ error: error.message });
   }
 };
 
@@ -48,7 +50,7 @@ exports.getJobPost = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ error: "An error occurred while retrieving the job" });
+      .json({ error: error.message });
   }
 };
 
@@ -69,6 +71,6 @@ exports.deleteJobPosts = async (req, res) => {
 
     res.status(200).json({ job, message: "Deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred while deleting the job" });
+    res.status(500).json({ error: error.message });
   }
 };

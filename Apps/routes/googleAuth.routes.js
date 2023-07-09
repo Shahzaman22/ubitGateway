@@ -23,7 +23,7 @@ router.get(
 );
 
 router.get("/failure", (req, res) => {
-  res.send("something went wrong..");
+  res.json("something went wrong..");
 });
 
 router.get("/protected", [isLoggedIn], async (req, res) => {
@@ -31,7 +31,7 @@ router.get("/protected", [isLoggedIn], async (req, res) => {
   res.json(user)
 });
 
-router.get("/logout", (req, res) => {
+router.get("/logout", (req, res, next) => {
   req.logout(function (err) {
     if (err) {
       return next(err);
