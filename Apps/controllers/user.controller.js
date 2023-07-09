@@ -39,7 +39,7 @@ exports.create = async (req, res) => {
   if (user)
     return res
       .status(400)
-      .send({ error: "User already registered with that email" });
+      .json({ error: "User already registered with that email" });
 
   let { name, email, password, role } = req.body;
 
@@ -285,20 +285,16 @@ exports.education = async (req, res) => {
     const id = req.user.userId;
     const { degree, startDate, endDate } = req.body;
 
-    // Find the user by userId
     const user = await User.findById(id);
 
-    // Create a new Education document
     const newEducation = {
       degree,
       startDate,
       endDate,
     };
 
-    // Add the new Education to the user's education array
     user.education.push(newEducation);
 
-    // Save the updated user document
     await user.save();
 
     res.status(201).json({ message: "Education added successfully" });
