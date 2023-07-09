@@ -74,3 +74,15 @@ exports.deleteJobPosts = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+//Get filtered Jobs
+exports.getFilteredJobs = async (req, res) => {
+  try {
+    const jobType = req.query.jobType; 
+    const jobs = await Job.find({ jobType: jobType }).sort({ postedAt: -1 });
+    res.status(200).json(jobs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
